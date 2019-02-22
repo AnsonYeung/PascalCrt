@@ -1,0 +1,25 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"code-runner.executorMap": {
+			"pascal": "$driveLetter && cd $dir && fpc -dRELEASE $fileName && rm $fileNameWithoutExt.o"
+		},
+		"code-runner.ignoreSelection": true,
+		"code-runner.saveAllFilesBeforeRun": true,
+		"code-runner.defaultLanguage": "pascal"
+	},
+	"extensions": {
+		"recommendations": [
+			"eamodio.gitlens",
+			"oderwat.indent-rainbow",
+			"sirtori.indenticator",
+			"robertohuertasm.vscode-icons",
+			"ansonyeung.pascal-language-basics",
+			"formulahendry.code-runner"
+		]
+	}, 
+}
