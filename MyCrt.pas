@@ -19,12 +19,6 @@ LightAqua: Integer = 11;
 LightPurple: Integer = 13;
 LightYellow: Integer = 14;
 White: Integer = 15;
-v : Char = #186;
-h : Char = #205;
-cul : Char = #201;
-cur : Char = #187;
-cll : Char = #200;
-clr : Char = #188;
 
 Function StrDup(Const str: String; Const cnt: Integer): String;
 Procedure InitConsole();
@@ -44,6 +38,14 @@ Procedure FlushInput();
 Procedure RestoreConsole();
 
 Implementation
+Const
+v : Char = #186;
+h : Char = #205;
+cul : Char = #201;
+cur : Char = #187;
+cll : Char = #200;
+clr : Char = #188;
+
 Var
 hStdin: Handle;
 hStdout: Handle;
