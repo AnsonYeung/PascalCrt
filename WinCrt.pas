@@ -1,7 +1,12 @@
 { This unit is a drop in replacement to build-in unit crt }
-Unit MyCrt;
+Unit WinCrt;
+{$IFNDEF Windows}
+	{$E WinCrt is for Windows only, for other platforms, please use the built-in crt}
+{$ENDIF}
 Interface
 Uses Windows, Math;
+Type
+_FontName = Array[0..(LF_FACESIZE - 1)] Of WCHAR;
 Const
 Black: Integer = 0;
 Blue: Integer = 1;
@@ -20,8 +25,16 @@ LightPurple: Integer = 13;
 LightYellow: Integer = 14;
 White: Integer = 15;
 
+v : Char = #186;
+h : Char = #205;
+cul : Char = #201;
+cur : Char = #187;
+cll : Char = #200;
+clr : Char = #188;
+
 Function StrDup(Const str: String; Const cnt: Integer): String;
 Procedure InitConsole();
+Procedure SetConsoleFont(Const FaceName: _FontName; Const x, y: Cardinal);
 Procedure SetConsoleSize(Const Width: Integer; Const Height: Integer);
 Procedure SetConsoleBuffer(Const Width: Integer; Const Height: Integer);
 Procedure PollConsoleInput(Var irInBuf: Array Of INPUT_RECORD; Const bufSize: DWord; Var cNumRead: DWord);
@@ -38,13 +51,6 @@ Procedure FlushInput();
 Procedure RestoreConsole();
 
 Implementation
-Const
-v : Char = #186;
-h : Char = #205;
-cul : Char = #201;
-cur : Char = #187;
-cll : Char = #200;
-clr : Char = #188;
 
 Var
 hStdin: Handle;
@@ -65,21 +71,26 @@ End;
 Procedure InitConsole();
 Var
 fdwMode: DWord;
-FontInfo: CONSOLE_FONT_INFOEX;
 Begin
 	GetConsoleMode(hStdin, @fdwSaveOldMode);
 	fdwMode := ENABLE_WINDOW_INPUT Or ENABLE_MOUSE_INPUT Or ENABLE_EXTENDED_FLAGS Or ENABLE_ECHO_INPUT Or ENABLE_LINE_INPUT Or ENABLE_INSERT_MODE;
 	SetConsoleMode(hStdin, fdwMode);
 	CursorOff();
+	SetConsoleFont('Consolas', 3, 6);
+	SetConsoleColor(Black * 16 + White);
+	ClrScr();
+End;
+
+Procedure SetConsoleFont(Const FaceName: _FontName; Const x, y: Cardinal);
+Var
+FontInfo: CONSOLE_FONT_INFOEX;
+Begin
 	FontInfo.cbSize := sizeof(CONSOLE_FONT_INFOEX);
 	GetCurrentConsoleFontEx(hStdout, False, @FontInfo);
-	FontInfo.FaceName := 'Lucida Console';
-	FontInfo.dwFontSize.X := 8;
-	FontInfo.dwFontSize.Y := 16;
+	FontInfo.FaceName := FaceName;
+	FontInfo.dwFontSize.X := x;
+	FontInfo.dwFontSize.Y := y;
 	SetCurrentConsoleFontEx(hStdout, False, @FontInfo);
-	TextBackground(Black);
-	TextColor(White);
-	ClrScr();
 End;
 
 Procedure SetConsoleSize(Const Width: Integer; Const Height: Integer);
