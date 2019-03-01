@@ -52,6 +52,17 @@ Procedure RestoreConsole();
 
 Implementation
 
+Type
+CONSOLE_FONT_INFOEX = Record
+	cbSize : Cardinal;
+	nFont : DWord;
+	dwFontSize : Coord;
+	FontFamily : Cardinal;
+	FontWeight : Cardinal;
+	FaceName : Array[0..(LF_FACESIZE)-1] Of WChar;
+End;
+PCONSOLE_FONT_INFOEX = ^CONSOLE_FONT_INFOEX;
+
 Var
 hStdin: Handle;
 hStdout: Handle;
