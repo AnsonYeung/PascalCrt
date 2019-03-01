@@ -68,6 +68,9 @@ hStdin: Handle;
 hStdout: Handle;
 fdwSaveOldMode: DWord;
 
+Function GetCurrentConsoleFontEx(hConsoleOutput: Handle; bMaximumWindow: LongBool; lpConsoleCurrentFontEx: PCONSOLE_FONT_INFOEX): LongBool; StdCall; External 'kernel32' Name 'GetCurrentConsoleFontEx';
+Function SetCurrentConsoleFontEx(hConsoleOutput: Handle; bMaximumWindow: LongBool; lpConsoleCurrentFontEx: PCONSOLE_FONT_INFOEX): LongBool; StdCall; External 'kernel32' Name 'SetCurrentConsoleFontEx';
+
 Function StrDup(Const str: String; Const cnt: Integer): String;
 Var
 result: String;
