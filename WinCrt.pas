@@ -2,6 +2,9 @@
 {$IFNDEF Windows}
 	{$Error WinCrt is for Windows only, for other platforms, please use the native crt unit}
 {$ENDIF}
+{$inline on}
+{$calling stdcall}
+{$LINKLIB kernel32}
 Unit WinCrt;
 Interface
 Uses Math;
@@ -22,6 +25,7 @@ LightAqua: Integer = 11;
 LightPurple: Integer = 13;
 LightYellow: Integer = 14;
 White: Integer = 15;
+
 v : Char = #186;
 h : Char = #205;
 cul : Char = #201;
@@ -29,7 +33,28 @@ cur : Char = #187;
 cll : Char = #200;
 clr : Char = #188;
 
+LF_FACESIZE = 32;
+STD_INPUT_HANDLE: DWord = DWord(-10);
+STD_OUTPUT_HANDLE: DWord = DWord(-11);
+STD_ERROR_HANDLE: DWord = DWord(-12);
+ENABLE_LINE_INPUT: DWord = 2;
+ENABLE_ECHO_INPUT: DWord = 4;
+ENABLE_PROCESSED_INPUT: DWord = 1;
+ENABLE_WINDOW_INPUT: DWord = 8;
+ENABLE_MOUSE_INPUT: DWord = 16;
+ENABLE_PROCESSED_OUTPUT: DWord = 1;
+ENABLE_WRAP_AT_EOL_OUTPUT: DWord = 2;
+ENABLE_INSERT_MODE: DWord = $0020;
+ENABLE_QUICK_EDIT_MODE: DWord = $0040;
+ENABLE_EXTENDED_FLAGS: DWord = $0080;
+ENABLE_AUTO_POSITION: DWord = $0100;
+ENABLE_VIRTUAL_TERMINAL_INPUT: DWord = $0200;
+ENABLE_VIRTUAL_TERMINAL_PROCESSING: DWord = $0004;
+DISABLE_NEWLINE_AUTO_RETURN: DWord = $0008;
+ENABLE_LVB_GRID_WORLDWIDE: DWord = $0010;
+
 Type
+FACETYPE = Array[0..(LF_FACESIZE)-1] Of WChar;
 Coord = Record
 	X : SmallInt;
 	Y : SmallInt;
@@ -77,7 +102,8 @@ INPUT_RECORD = Record
 	End;
 End;
 
-Procedure InitConsole();
+Procedure SetConsoleTitle(Const title: AnsiString);
+Procedure SetConsoleFont(Const FaceName: FACETYPE; Const x, y: Integer);
 Procedure SetConsoleSize(Const Width: Integer; Const Height: Integer);
 Procedure SetConsoleBuffer(Const Width: Integer; Const Height: Integer);
 Procedure PollConsoleInput(Var irInBuf: Array Of INPUT_RECORD; Const bufSize: DWord; Var cNumRead: DWord);
@@ -85,35 +111,13 @@ Procedure ClrScr();
 Procedure SetConsoleColor(Const color: Word);
 Procedure TextBackground(Const color: Integer);
 Procedure TextColor(Const color: Integer);
-Procedure GoToXY(Const X: Integer; Const Y: Integer);
-Procedure WriteDup(Const X: Integer; Const Y: Integer; Const c: PChar; Const n: Integer);
-Procedure WriteDupAttr(Const X: Integer; Const Y: Integer; Const n: Integer);
+Procedure GoToXY(Const x, y: Integer);
+{Procedure WriteAt(Const s: String; Const x, y: Integer);}
 Procedure CursorOff();
 Procedure CursorOn();
 Procedure FlushInput();
-Procedure RestoreConsole();
 
 Implementation
-Const
-LF_FACESIZE = 32;
-STD_INPUT_HANDLE = DWord(-10);
-STD_OUTPUT_HANDLE = DWord(-11);
-STD_ERROR_HANDLE = DWord(-12);
-ENABLE_LINE_INPUT = 2;
-ENABLE_ECHO_INPUT = 4;
-ENABLE_PROCESSED_INPUT = 1;
-ENABLE_WINDOW_INPUT = 8;
-ENABLE_MOUSE_INPUT = 16;
-ENABLE_PROCESSED_OUTPUT = 1;
-ENABLE_WRAP_AT_EOL_OUTPUT = 2;
-ENABLE_INSERT_MODE = $0020;
-ENABLE_QUICK_EDIT_MODE = $0040;
-ENABLE_EXTENDED_FLAGS = $0080;
-ENABLE_AUTO_POSITION = $0100;
-ENABLE_VIRTUAL_TERMINAL_INPUT = $0200;
-ENABLE_VIRTUAL_TERMINAL_PROCESSING = $0004;
-DISABLE_NEWLINE_AUTO_RETURN = $0008;
-ENABLE_LVB_GRID_WORLDWIDE = $0010;
 
 Type
 Handle = System.THandle;
@@ -125,7 +129,7 @@ CONSOLE_FONT_INFOEX = Record
 	dwFontSize : Coord;
 	FontFamily : Cardinal;
 	FontWeight : Cardinal;
-	FaceName : Array[0..(LF_FACESIZE)-1] Of WChar;
+	FaceName : FACETYPE;
 End;
 PCONSOLE_FONT_INFOEX = ^CONSOLE_FONT_INFOEX;
 
@@ -156,26 +160,27 @@ hStdin: Handle;
 hStdout: Handle;
 fdwSaveOldMode: DWord;
 
-Function GetConsoleMode(hConsoleHandle: Handle; lpMode: LpDWord): LongBool; External 'kernel32' Name 'GetConsoleMode';
-Function SetConsoleMode(hConsoleHandle: Handle; dwMode: DWord): LongBool; External 'kernel32' Name 'SetConsoleMode';
-Function GetCurrentConsoleFontEx(hConsoleOutput: Handle; bMaximumWindow: LongBool; lpConsoleCurrentFontEx: PCONSOLE_FONT_INFOEX): LongBool; StdCall; External 'kernel32' Name 'GetCurrentConsoleFontEx';
-Function SetCurrentConsoleFontEx(hConsoleOutput: Handle; bMaximumWindow: LongBool; lpConsoleCurrentFontEx: PCONSOLE_FONT_INFOEX): LongBool; StdCall; External 'kernel32' Name 'SetCurrentConsoleFontEx';
-Function GetConsoleScreenBufferInfo(hConsoleOutput: Handle; lpConsoleScreenBufferInfo: PCONSOLE_SCREEN_BUFFER_INFO): LongBool; External 'kernel32' Name 'GetConsoleScreenBufferInfo';
-Function SetConsoleWindowInfo(hConsoleOutput: Handle; bAbsolute: LongBool; Var lpConsoleWindow: SMALL_RECT): LongBool; External 'kernel32' Name 'SetConsoleWindowInfo';
-Function SetConsoleScreenBufferSize(hConsoleOutput: Handle; dwSize: Coord): LongBool; External 'kernel32' Name 'SetConsoleScreenBufferSize';
-Function ReadConsoleInput(hConsoleInput: Handle; lpBuffer: PINPUTRECORD; nLength: DWord; lpNumberOfEventsRead: LpDWord): LongBool; External 'kernel32' Name 'ReadConsoleInputA';
-Function FillConsoleOutputCharacter(hConsoleOutput: Handle; cCharacter: Char; nLength: DWord; dwWriteCoord: Coord; lpNumberOfCharsWritten: LpDWord): LongBool; External 'kernel32' Name 'FillConsoleOutputCharacterA';
-Function FillConsoleOutputAttribute(hConsoleOutput: Handle; wAttribute: Word; nLength: DWord; dwWriteCoord: Coord; lpNumberOfAttrsWritten: LpDWord): LongBool; External 'kernel32' Name 'FillConsoleOutputAttribute';
-Function SetConsoleTextAttribute(hConsoleOutput: Handle; wAttributes: Word): LongBool; External 'kernel32' Name 'SetConsoleTextAttribute';
-{Function SetConsoleCursorPosition(hConsoleOutput: Handle; dwCursorPosition: Coord): LongBool; External 'kernel32' Name 'SetConsoleCursorPosition';}
-Function WriteConsoleOutputCharacter(hConsoleOutput: Handle; lpCharacter: PChar; nLength: DWord; dwWriteCoord: Coord; lpNumberOfCharsWritten: LpDWord): LongBool; External 'kernel32' Name 'WriteConsoleOutputCharacterA';
-Function WriteConsoleOutputAttribute(hConsoleOutput: Handle; lpAttribute: Pointer; nLength: DWord; dwWriteCoord: Coord; lpNumberOfAttrsWritten: LpDWord): LongBool; External 'kernel32' Name 'WriteConsoleOutputAttribute';
-Function SetConsoleCursorInfo(hConsoleOutput: Handle; lpConsoleCursorInfo: PCONSOLE_CURSOR_INFO): LongBool; External 'kernel32' Name 'SetConsoleCursorInfo';
-Function FlushConsoleInputBuffer(hConsoleInput: Handle): LongBool; External 'kernel32' Name 'FlushConsoleInputBuffer';
-Function SetConsoleOutputCP(wCodePageID: Cardinal): LongBool; External 'kernel32' Name 'SetConsoleOutputCP';
-Function GetStdHandle(nStdHandle: DWord): Handle; External 'kernel32' Name 'GetStdHandle';
-Function GetLastError(): DWord; External 'kernel32' Name 'GetLastError';
-Function AttachConsole(dwProcessId: DWord): LongBool; External 'kernel32' Name 'AttachConsole';
+Function GetConsoleMode(hConsoleHandle: Handle; lpMode: LpDWord): LongBool; External Name 'GetConsoleMode';
+Function SetConsoleMode(hConsoleHandle: Handle; dwMode: DWord): LongBool; External Name 'SetConsoleMode';
+Function GetCurrentConsoleFontEx(hConsoleOutput: Handle; bMaximumWindow: LongBool; lpConsoleCurrentFontEx: PCONSOLE_FONT_INFOEX): LongBool; External Name 'GetCurrentConsoleFontEx';
+Function SetCurrentConsoleFontEx(hConsoleOutput: Handle; bMaximumWindow: LongBool; lpConsoleCurrentFontEx: PCONSOLE_FONT_INFOEX): LongBool; External Name 'SetCurrentConsoleFontEx';
+Function GetConsoleScreenBufferInfo(hConsoleOutput: Handle; lpConsoleScreenBufferInfo: PCONSOLE_SCREEN_BUFFER_INFO): LongBool; External Name 'GetConsoleScreenBufferInfo';
+Function SetConsoleWindowInfo(hConsoleOutput: Handle; bAbsolute: LongBool; Var lpConsoleWindow: SMALL_RECT): LongBool; External Name 'SetConsoleWindowInfo';
+Function SetConsoleScreenBufferSize(hConsoleOutput: Handle; dwSize: Coord): LongBool; External Name 'SetConsoleScreenBufferSize';
+Function ReadConsoleInput(hConsoleInput: Handle; lpBuffer: PINPUTRECORD; nLength: DWord; lpNumberOfEventsRead: LpDWord): LongBool; External Name 'ReadConsoleInputA';
+Function FillConsoleOutputCharacter(hConsoleOutput: Handle; cCharacter: Char; nLength: DWord; dwWriteCoord: Coord; lpNumberOfCharsWritten: LpDWord): LongBool; External Name 'FillConsoleOutputCharacterA';
+Function FillConsoleOutputAttribute(hConsoleOutput: Handle; wAttribute: Word; nLength: DWord; dwWriteCoord: Coord; lpNumberOfAttrsWritten: LpDWord): LongBool; External Name 'FillConsoleOutputAttribute';
+Function SetConsoleTextAttribute(hConsoleOutput: Handle; wAttributes: Word): LongBool; External Name 'SetConsoleTextAttribute';
+Function SetConsoleCursorPosition(hConsoleOutput: Handle; dwCursorPosition: Coord): LongBool; External Name 'SetConsoleCursorPosition';
+Function WriteConsoleOutputCharacter(hConsoleOutput: Handle; lpCharacter: PChar; nLength: DWord; dwWriteCoord: Coord; lpNumberOfCharsWritten: LpDWord): LongBool; External Name 'WriteConsoleOutputCharacterA';
+Function WriteConsoleOutputAttribute(hConsoleOutput: Handle; lpAttribute: Pointer; nLength: DWord; dwWriteCoord: Coord; lpNumberOfAttrsWritten: LpDWord): LongBool; External Name 'WriteConsoleOutputAttribute';
+Function SetConsoleCursorInfo(hConsoleOutput: Handle; lpConsoleCursorInfo: PCONSOLE_CURSOR_INFO): LongBool; External Name 'SetConsoleCursorInfo';
+Function FlushConsoleInputBuffer(hConsoleInput: Handle): LongBool; External Name 'FlushConsoleInputBuffer';
+Function SetConsoleOutputCP(wCodePageID: Cardinal): LongBool; External Name 'SetConsoleOutputCP';
+Function GetStdHandle(nStdHandle: DWord): Handle; External Name 'GetStdHandle';
+Function GetLastError(): DWord; External Name 'GetLastError';
+Function AttachConsole(dwProcessId: DWord): LongBool; External Name 'AttachConsole';
+Function SetConsoleTitleA(lpConsoleTitle: PAnsiString): LongBool; External Name 'SetConsoleTitleA';
 
 Function StrDup(Const str: String; Const cnt: Integer): String;
 Var
@@ -188,24 +193,22 @@ Begin
 	StrDup := result;
 End;
 
-Procedure InitConsole();
+
+Procedure SetConsoleTitle(Const title: AnsiString);
+Begin
+	SetConsoleTitleA(PAnsiString(title));
+End;
+
+Procedure SetConsoleFont(Const FaceName: FACETYPE; Const x, y: Integer);
 Var
-fdwMode: DWord;
 FontInfo: CONSOLE_FONT_INFOEX;
 Begin
-	GetConsoleMode(hStdin, @fdwSaveOldMode);
-	fdwMode := ENABLE_WINDOW_INPUT Or ENABLE_MOUSE_INPUT Or ENABLE_EXTENDED_FLAGS Or ENABLE_ECHO_INPUT Or ENABLE_LINE_INPUT Or ENABLE_INSERT_MODE;
-	SetConsoleMode(hStdin, fdwMode);
-	CursorOff();
 	FontInfo.cbSize := sizeof(CONSOLE_FONT_INFOEX);
 	GetCurrentConsoleFontEx(hStdout, False, @FontInfo);
-	FontInfo.FaceName := 'Lucida Console';
-	FontInfo.dwFontSize.X := 8;
-	FontInfo.dwFontSize.Y := 16;
+	FontInfo.FaceName := FaceName;
+	FontInfo.dwFontSize.X := x;
+	FontInfo.dwFontSize.Y := y;
 	SetCurrentConsoleFontEx(hStdout, False, @FontInfo);
-	TextBackground(Black);
-	TextColor(White);
-	ClrScr();
 End;
 
 Procedure SetConsoleSize(Const Width: Integer; Const Height: Integer);
@@ -276,41 +279,13 @@ Begin
 	SetConsoleColor(CurrentInfo.wAttributes And 240 + color);
 End;
 
-Procedure GoToXY(Const X: Integer; Const Y: Integer);
+Procedure GoToXY(Const x, y: Integer);
 Var
 Loc: Coord;
 Begin
-	Loc.X := X;
-	Loc.Y := Y;
-	{SetConsoleCursorPosition(hStdout, Loc);}
-End;
-
-Procedure WriteDup(Const X: Integer; Const Y: Integer; Const c: PChar; Const n: Integer);
-Var
-Loc: Coord;
-written: DWord;
-Begin
-	Loc.X := X;
-	Loc.Y := Y;
-	WriteConsoleOutputCharacter(hStdout, c, n, Loc, @written);
-	WriteDupAttr(X, Y, n);
-End;
-
-Procedure WriteDupAttr(Const X: Integer; Const Y: Integer; Const n: Integer);
-Var
-Loc: Coord;
-written: DWord;
-CurrentInfo: CONSOLE_SCREEN_BUFFER_INFO;
-Attributes: Array Of Word;
-i: Integer;
-Begin
-	Loc.X := X;
-	Loc.Y := Y;
-	GetConsoleScreenBufferInfo(hStdout, @CurrentInfo);
-	SetLength(Attributes, n);
-	For i := 0 To n - 1 Do
-		Attributes[i] := CurrentInfo.wAttributes;
-	WriteConsoleOutputAttribute(hStdout, @Attributes[0], n, Loc, @written);
+	Loc.X := x;
+	Loc.Y := y;
+	SetConsoleCursorPosition(hStdout, Loc);
 End;
 
 Procedure CursorOff();
@@ -336,22 +311,12 @@ Begin
 	FlushConsoleInputBuffer(hStdin);
 End;
 
-Procedure RestoreConsole();
-Begin
-	SetConsoleMode(hStdin, fdwSaveOldMode);
-End;
-
 Initialization
-	Write('tes');
-	SetConsoleOutputCP(437);
 	hStdin := GetStdHandle(STD_INPUT_HANDLE);
-	Write(GetLastError());
 	hStdout := GetStdHandle(STD_OUTPUT_HANDLE);
-	Write(GetLastError());
-	Write(hStdin = Handle(-1));
-	Write(hStdout = Handle(-1));
-	InitConsole();
-	WriteLn('----t');
+	SetConsoleOutputCP(437);
+	GetConsoleMode(hStdin, @fdwSaveOldMode);
+	SetConsoleMode(hStdin, ENABLE_WINDOW_INPUT Or ENABLE_MOUSE_INPUT Or ENABLE_EXTENDED_FLAGS Or ENABLE_ECHO_INPUT Or ENABLE_LINE_INPUT Or ENABLE_INSERT_MODE);
 Finalization
-	RestoreConsole();
+	SetConsoleMode(hStdin, fdwSaveOldMode);
 End.

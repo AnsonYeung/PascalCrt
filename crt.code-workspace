@@ -10,7 +10,8 @@
 		},
 		"code-runner.ignoreSelection": true,
 		"code-runner.saveAllFilesBeforeRun": true,
-		"code-runner.defaultLanguage": "pascal"
+		"code-runner.defaultLanguage": "pascal",
+		"terminal.explorerKind": "integrated"
 	},
 	"extensions": {
 		"recommendations": [
