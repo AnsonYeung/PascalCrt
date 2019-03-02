@@ -112,7 +112,11 @@ Procedure SetConsoleColor(Const color: Word);
 Procedure TextBackground(Const color: Integer);
 Procedure TextColor(Const color: Integer);
 Procedure GoToXY(Const x, y: Integer);
-{Procedure WriteAt(Const s: String; Const x, y: Integer);}
+Procedure Read(Var s: Array Of Char; Var numRead: DWord);
+Procedure ReadLn(Var s: Array Of Char; Var numRead: DWord);
+Procedure Write(Const s: AnsiString);
+Procedure WriteLn();
+Procedure WriteLn(Const s: AnsiString);
 Procedure CursorOff();
 Procedure CursorOn();
 Procedure FlushInput();
@@ -155,6 +159,13 @@ CONSOLE_CURSOR_INFO = Record
 End;
 PCONSOLE_CURSOR_INFO = ^CONSOLE_CURSOR_INFO;
 
+SECURITY_ATTRIBUTES = Record
+	nLength : DWord;
+	lpSecurityDescriptor : Pointer;
+	bInheritHandle : LongBool;
+End;
+PSECURITY_ATTRIBUTES = ^SECURITY_ATTRIBUTES;
+
 Var
 hStdin: Handle;
 hStdout: Handle;
@@ -181,6 +192,10 @@ Function GetStdHandle(nStdHandle: DWord): Handle; External Name 'GetStdHandle';
 Function GetLastError(): DWord; External Name 'GetLastError';
 Function AttachConsole(dwProcessId: DWord): LongBool; External Name 'AttachConsole';
 Function SetConsoleTitleA(lpConsoleTitle: PAnsiString): LongBool; External Name 'SetConsoleTitleA';
+Function CreateConsoleScreenBuffer(dwDesiredAccess: DWord; dwShareMode: DWord; Const lpSecurityAttributes: PSECURITY_ATTRIBUTES; dwFlags: DWord; lpScreenBufferData: Pointer): Handle; External Name 'CreateConsoleScreenBuffer';
+Function SetConsoleActiveScreenBuffer(hConsoleOutput: Handle): LongBool; External Name 'SetConsoleActiveScreenBuffer';
+Function ReadConsole(hConsoleInput: Handle; lpBuffer: Pointer; nNumberOfCharsToRead: DWord; lpNumberOfCharsRead: LpDWord; pInputControl: Pointer): LongBool; External Name 'ReadConsoleA';
+Function WriteConsole(hConsoleOutput: Handle; Const lpBuffer: Pointer; nNumberOfCharsToWrite: DWord; lpNumberOfCharsWritten: LpDWord; lpReserved: Pointer): LongBool; External Name 'WriteConsoleA';
 
 Function StrDup(Const str: String; Const cnt: Integer): String;
 Var
@@ -205,6 +220,8 @@ FontInfo: CONSOLE_FONT_INFOEX;
 Begin
 	FontInfo.cbSize := sizeof(CONSOLE_FONT_INFOEX);
 	GetCurrentConsoleFontEx(hStdout, False, @FontInfo);
+	{ Set to TrueType }
+	FontInfo.FontFamily := FontInfo.FontFamily Or 4;
 	FontInfo.FaceName := FaceName;
 	FontInfo.dwFontSize.X := x;
 	FontInfo.dwFontSize.Y := y;
@@ -288,6 +305,35 @@ Begin
 	SetConsoleCursorPosition(hStdout, Loc);
 End;
 
+Procedure Read(Var s: Array Of Char; Var numRead: DWord);
+Begin
+	ReadConsole(hStdin, @s[0], Length(s), @numRead, Nil);
+	WriteLn();
+End;
+
+Procedure ReadLn(Var s: Array Of Char; Var numRead: DWord);
+Begin
+	Read(s, numRead);
+	FlushInput();
+End;
+
+Procedure Write(Const s: AnsiString);
+Var
+cCharsWritten: DWord;
+Begin
+	WriteConsole(hStdout, PAnsiString(s), Length(s), @cCharsWritten, Nil);
+End;
+
+Procedure WriteLn();
+Begin
+	Write(Chr(10));
+End;
+
+Procedure WriteLn(Const s: AnsiString);
+Begin
+	Write(s + Chr(10));
+End;
+
 Procedure CursorOff();
 Var
 cursorInfo: CONSOLE_CURSOR_INFO;
@@ -313,7 +359,9 @@ End;
 
 Initialization
 	hStdin := GetStdHandle(STD_INPUT_HANDLE);
-	hStdout := GetStdHandle(STD_OUTPUT_HANDLE);
+	{hStdout := GetStdHandle(STD_OUTPUT_HANDLE);}
+	hStdout := CreateConsoleScreenBuffer(1073741824, 2, Nil, 1, Nil);
+	SetConsoleActiveScreenBuffer(hStdout);
 	SetConsoleOutputCP(437);
 	GetConsoleMode(hStdin, @fdwSaveOldMode);
 	SetConsoleMode(hStdin, ENABLE_WINDOW_INPUT Or ENABLE_MOUSE_INPUT Or ENABLE_EXTENDED_FLAGS Or ENABLE_ECHO_INPUT Or ENABLE_LINE_INPUT Or ENABLE_INSERT_MODE);
