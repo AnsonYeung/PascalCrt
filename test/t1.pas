@@ -1,5 +1,5 @@
 Program t1;
-Uses SysUtils, WinCrt;
+Uses SysUtils, Console;
 Var
 i: DWord;
 start: TDateTime;
@@ -12,7 +12,7 @@ Begin
 
 	SetConsoleFont('Consolas', 10, 20);
 	SetConsoleSize(120, 30);
-	SetConsoleTitle('WinCrt Test Progarm');
+	SetConsoleTitle('Console.ppu Test Progarm');
 	start := Time();
 	s := '';
 	For i := 1 To 255 Do

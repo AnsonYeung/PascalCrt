@@ -1,12 +1,11 @@
-{ This unit is a drop in replacement to build-in unit crt }
+{ This unit can be a replacement to build-in unit crt }
 {$IFNDEF Windows}
-	{$Error WinCrt is for Windows only, for other platforms, please use the native crt unit}
+	{$Error Console unit is for Windows only, for other platforms, please use the native crt unit}
 {$ENDIF}
 {$mode objfpc}
 {$inline on}
 {$calling stdcall}
-{$LINKLIB kernel32}
-Unit WinCrt;
+Unit Console;
 Interface
 Uses Math;
 Const
@@ -172,31 +171,31 @@ hStdin: Handle;
 hStdout: Handle;
 fdwSaveOldMode: DWord;
 
-Function GetConsoleMode(hConsoleHandle: Handle; lpMode: LpDWord): LongBool; External Name 'GetConsoleMode';
-Function SetConsoleMode(hConsoleHandle: Handle; dwMode: DWord): LongBool; External Name 'SetConsoleMode';
-Function GetCurrentConsoleFontEx(hConsoleOutput: Handle; bMaximumWindow: LongBool; lpConsoleCurrentFontEx: PCONSOLE_FONT_INFOEX): LongBool; External Name 'GetCurrentConsoleFontEx';
-Function SetCurrentConsoleFontEx(hConsoleOutput: Handle; bMaximumWindow: LongBool; lpConsoleCurrentFontEx: PCONSOLE_FONT_INFOEX): LongBool; External Name 'SetCurrentConsoleFontEx';
-Function GetConsoleScreenBufferInfo(hConsoleOutput: Handle; lpConsoleScreenBufferInfo: PCONSOLE_SCREEN_BUFFER_INFO): LongBool; External Name 'GetConsoleScreenBufferInfo';
-Function SetConsoleWindowInfo(hConsoleOutput: Handle; bAbsolute: LongBool; Var lpConsoleWindow: SMALL_RECT): LongBool; External Name 'SetConsoleWindowInfo';
-Function SetConsoleScreenBufferSize(hConsoleOutput: Handle; dwSize: Coord): LongBool; External Name 'SetConsoleScreenBufferSize';
-Function ReadConsoleInput(hConsoleInput: Handle; lpBuffer: PINPUTRECORD; nLength: DWord; lpNumberOfEventsRead: LpDWord): LongBool; External Name 'ReadConsoleInputA';
-Function FillConsoleOutputCharacter(hConsoleOutput: Handle; cCharacter: Char; nLength: DWord; dwWriteCoord: Coord; lpNumberOfCharsWritten: LpDWord): LongBool; External Name 'FillConsoleOutputCharacterA';
-Function FillConsoleOutputAttribute(hConsoleOutput: Handle; wAttribute: Word; nLength: DWord; dwWriteCoord: Coord; lpNumberOfAttrsWritten: LpDWord): LongBool; External Name 'FillConsoleOutputAttribute';
-Function SetConsoleTextAttribute(hConsoleOutput: Handle; wAttributes: Word): LongBool; External Name 'SetConsoleTextAttribute';
-Function SetConsoleCursorPosition(hConsoleOutput: Handle; dwCursorPosition: Coord): LongBool; External Name 'SetConsoleCursorPosition';
-Function WriteConsoleOutputCharacter(hConsoleOutput: Handle; lpCharacter: PChar; nLength: DWord; dwWriteCoord: Coord; lpNumberOfCharsWritten: LpDWord): LongBool; External Name 'WriteConsoleOutputCharacterA';
-Function WriteConsoleOutputAttribute(hConsoleOutput: Handle; lpAttribute: Pointer; nLength: DWord; dwWriteCoord: Coord; lpNumberOfAttrsWritten: LpDWord): LongBool; External Name 'WriteConsoleOutputAttribute';
-Function SetConsoleCursorInfo(hConsoleOutput: Handle; lpConsoleCursorInfo: PCONSOLE_CURSOR_INFO): LongBool; External Name 'SetConsoleCursorInfo';
-Function FlushConsoleInputBuffer(hConsoleInput: Handle): LongBool; External Name 'FlushConsoleInputBuffer';
-Function SetConsoleOutputCP(wCodePageID: Cardinal): LongBool; External Name 'SetConsoleOutputCP';
-Function GetStdHandle(nStdHandle: DWord): Handle; External Name 'GetStdHandle';
-Function GetLastError(): DWord; External Name 'GetLastError';
-Function AttachConsole(dwProcessId: DWord): LongBool; External Name 'AttachConsole';
-Function SetConsoleTitleA(lpConsoleTitle: PAnsiString): LongBool; External Name 'SetConsoleTitleA';
-Function CreateConsoleScreenBuffer(dwDesiredAccess: DWord; dwShareMode: DWord; Const lpSecurityAttributes: PSECURITY_ATTRIBUTES; dwFlags: DWord; lpScreenBufferData: Pointer): Handle; External Name 'CreateConsoleScreenBuffer';
-Function SetConsoleActiveScreenBuffer(hConsoleOutput: Handle): LongBool; External Name 'SetConsoleActiveScreenBuffer';
-Function ReadConsole(hConsoleInput: Handle; lpBuffer: Pointer; nNumberOfCharsToRead: DWord; lpNumberOfCharsRead: LpDWord; pInputControl: Pointer): LongBool; External Name 'ReadConsoleA';
-Function WriteConsole(hConsoleOutput: Handle; Const lpBuffer: Pointer; nNumberOfCharsToWrite: DWord; lpNumberOfCharsWritten: LpDWord; lpReserved: Pointer): LongBool; External Name 'WriteConsoleA';
+Function GetConsoleMode(hConsoleHandle: Handle; lpMode: LpDWord): LongBool; External 'kernel32';
+Function SetConsoleMode(hConsoleHandle: Handle; dwMode: DWord): LongBool; External 'kernel32';
+Function GetCurrentConsoleFontEx(hConsoleOutput: Handle; bMaximumWindow: LongBool; lpConsoleCurrentFontEx: PCONSOLE_FONT_INFOEX): LongBool; External 'kernel32';
+Function SetCurrentConsoleFontEx(hConsoleOutput: Handle; bMaximumWindow: LongBool; lpConsoleCurrentFontEx: PCONSOLE_FONT_INFOEX): LongBool; External 'kernel32';
+Function GetConsoleScreenBufferInfo(hConsoleOutput: Handle; lpConsoleScreenBufferInfo: PCONSOLE_SCREEN_BUFFER_INFO): LongBool; External 'kernel32';
+Function SetConsoleWindowInfo(hConsoleOutput: Handle; bAbsolute: LongBool; Var lpConsoleWindow: SMALL_RECT): LongBool; External 'kernel32';
+Function SetConsoleScreenBufferSize(hConsoleOutput: Handle; dwSize: Coord): LongBool; External 'kernel32';
+Function ReadConsoleInputA(hConsoleInput: Handle; lpBuffer: PINPUTRECORD; nLength: DWord; lpNumberOfEventsRead: LpDWord): LongBool; External 'kernel32';
+Function FillConsoleOutputCharacterA(hConsoleOutput: Handle; cCharacter: Char; nLength: DWord; dwWriteCoord: Coord; lpNumberOfCharsWritten: LpDWord): LongBool; External 'kernel32';
+Function FillConsoleOutputAttribute(hConsoleOutput: Handle; wAttribute: Word; nLength: DWord; dwWriteCoord: Coord; lpNumberOfAttrsWritten: LpDWord): LongBool; External 'kernel32';
+Function SetConsoleTextAttribute(hConsoleOutput: Handle; wAttributes: Word): LongBool; External 'kernel32';
+Function SetConsoleCursorPosition(hConsoleOutput: Handle; dwCursorPosition: Coord): LongBool; External 'kernel32';
+Function WriteConsoleOutputCharacterA(hConsoleOutput: Handle; lpCharacter: PChar; nLength: DWord; dwWriteCoord: Coord; lpNumberOfCharsWritten: LpDWord): LongBool; External 'kernel32';
+Function WriteConsoleOutputAttribute(hConsoleOutput: Handle; lpAttribute: Pointer; nLength: DWord; dwWriteCoord: Coord; lpNumberOfAttrsWritten: LpDWord): LongBool; External 'kernel32';
+Function SetConsoleCursorInfo(hConsoleOutput: Handle; lpConsoleCursorInfo: PCONSOLE_CURSOR_INFO): LongBool; External 'kernel32';
+Function FlushConsoleInputBuffer(hConsoleInput: Handle): LongBool; External 'kernel32';
+Function SetConsoleOutputCP(wCodePageID: Cardinal): LongBool; External 'kernel32';
+Function GetStdHandle(nStdHandle: DWord): Handle; External 'kernel32';
+Function GetLastError(): DWord; External 'kernel32';
+Function AttachConsole(dwProcessId: DWord): LongBool; External 'kernel32';
+Function SetConsoleTitleA(lpConsoleTitle: PAnsiString): LongBool; External 'kernel32';
+Function CreateConsoleScreenBuffer(dwDesiredAccess: DWord; dwShareMode: DWord; Const lpSecurityAttributes: PSECURITY_ATTRIBUTES; dwFlags: DWord; lpScreenBufferData: Pointer): Handle; External 'kernel32';
+Function SetConsoleActiveScreenBuffer(hConsoleOutput: Handle): LongBool; External 'kernel32';
+Function ReadConsoleA(hConsoleInput: Handle; lpBuffer: Pointer; nNumberOfCharsToRead: DWord; lpNumberOfCharsRead: LpDWord; pInputControl: Pointer): LongBool; External 'kernel32';
+Function WriteConsoleA(hConsoleOutput: Handle; Const lpBuffer: Pointer; nNumberOfCharsToWrite: DWord; lpNumberOfCharsWritten: LpDWord; lpReserved: Pointer): LongBool; External 'kernel32';
 
 Function StrDup(Const str: String; Const cnt: Integer): String;
 Var
@@ -259,7 +258,7 @@ End;
 
 Procedure PollConsoleInput(Var irInBuf: Array Of INPUT_RECORD; Const bufSize: DWord; Var cNumRead: DWord);
 Begin
-	ReadConsoleInput(hStdin, irInBuf, bufSize, @cNumRead);
+	ReadConsoleInputA(hStdin, irInBuf, bufSize, @cNumRead);
 End;
 
 Procedure ClrScr();
@@ -271,7 +270,7 @@ Begin
 	GetConsoleScreenBufferInfo(hStdout, @CurrentInfo);
 	screen.X := 0;
 	screen.Y := 0;
-	FillConsoleOutputCharacter(hStdout, ' ', CurrentInfo.dwSize.X * CurrentInfo.dwSize.Y, screen, @cCharsWritten);
+	FillConsoleOutputCharacterA(hStdout, ' ', CurrentInfo.dwSize.X * CurrentInfo.dwSize.Y, screen, @cCharsWritten);
 	FillConsoleOutputAttribute(hStdout, CurrentInfo.wAttributes, CurrentInfo.dwSize.X * CurrentInfo.dwSize.Y, screen, @cCharsWritten);
 	GoToXY(0, 0);
 End;
@@ -308,7 +307,7 @@ End;
 
 Procedure Read(Var s: Array Of Char; Var numRead: DWord);
 Begin
-	ReadConsole(hStdin, @s[0], Length(s), @numRead, Nil);
+	ReadConsoleA(hStdin, @s[0], Length(s), @numRead, Nil);
 	WriteLn();
 End;
 
@@ -322,7 +321,7 @@ Procedure Write(Const s: AnsiString);
 Var
 cCharsWritten: DWord;
 Begin
-	WriteConsole(hStdout, PAnsiString(s), Length(s), @cCharsWritten, Nil);
+	WriteConsoleA(hStdout, PAnsiString(s), Length(s), @cCharsWritten, Nil);
 End;
 
 Procedure WriteLn();

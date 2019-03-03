@@ -1,1 +1,1 @@
-cd test && rm -f t1.exe ../libimpWinCrt.a ../WinCrt.o ../WinCrt.ppu && fpc -dRELEASE -Fu.. t1.pas && start t1
+cd test && rm -f t1.exe ../libimpWinCrt.a ../Console.o ../Console.ppu && fpc -dRELEASE -Fu.. t1.pas && start t1
