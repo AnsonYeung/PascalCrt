@@ -2,6 +2,7 @@
 {$IFNDEF Windows}
 	{$Error WinCrt is for Windows only, for other platforms, please use the native crt unit}
 {$ENDIF}
+{$mode objfpc}
 {$inline on}
 {$calling stdcall}
 {$LINKLIB kernel32}
@@ -199,13 +200,13 @@ Function WriteConsole(hConsoleOutput: Handle; Const lpBuffer: Pointer; nNumberOf
 
 Function StrDup(Const str: String; Const cnt: Integer): String;
 Var
-result: String;
+s: String;
 i: Integer;
 Begin
-	result := '';
+	s := '';
 	For i := 1 To cnt Do
-		result := result + str;
-	StrDup := result;
+		s := s + str;
+	StrDup := s;
 End;
 
 
