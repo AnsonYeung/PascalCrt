@@ -1,3 +1,4 @@
 *.o
 *.exe
 !Console.o
+!t1.exe

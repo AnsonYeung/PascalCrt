@@ -7,7 +7,7 @@
 {$calling stdcall}
 Unit Console;
 Interface
-Uses Math;
+Uses Math, SysUtils;
 Const
 Black: Integer = 0;
 Blue: Integer = 1;
@@ -219,10 +219,11 @@ Var
 FontInfo: CONSOLE_FONT_INFOEX;
 Begin
 	FontInfo.cbSize := sizeof(CONSOLE_FONT_INFOEX);
-	GetCurrentConsoleFontEx(hStdout, False, @FontInfo);
 	{ Set to TrueType }
-	FontInfo.FontFamily := FontInfo.FontFamily And $f0 + 6;
-	FontInfo.FaceName := FaceName;
+	FontInfo.FontFamily := 0;
+	FontInfo.nFont := 0;
+	FontInfo.FontWeight := 400;
+	FontInfo.FaceName := 'Consolas';
 	FontInfo.dwFontSize.X := x;
 	FontInfo.dwFontSize.Y := y;
 	SetCurrentConsoleFontEx(hStdout, False, @FontInfo);
