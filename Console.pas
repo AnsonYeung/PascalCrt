@@ -221,7 +221,7 @@ Begin
 	FontInfo.cbSize := sizeof(CONSOLE_FONT_INFOEX);
 	GetCurrentConsoleFontEx(hStdout, False, @FontInfo);
 	{ Set to TrueType }
-	FontInfo.FontFamily := FontInfo.FontFamily Or 4;
+	FontInfo.FontFamily := FontInfo.FontFamily And $f0 + 6;
 	FontInfo.FaceName := FaceName;
 	FontInfo.dwFontSize.X := x;
 	FontInfo.dwFontSize.Y := y;
@@ -359,7 +359,6 @@ End;
 
 Initialization
 	hStdin := GetStdHandle(STD_INPUT_HANDLE);
-	{hStdout := GetStdHandle(STD_OUTPUT_HANDLE);}
 	hStdout := CreateConsoleScreenBuffer(1073741824, 2, Nil, 1, Nil);
 	SetConsoleActiveScreenBuffer(hStdout);
 	SetConsoleOutputCP(437);
@@ -367,4 +366,5 @@ Initialization
 	SetConsoleMode(hStdin, ENABLE_WINDOW_INPUT Or ENABLE_MOUSE_INPUT Or ENABLE_EXTENDED_FLAGS Or ENABLE_ECHO_INPUT Or ENABLE_LINE_INPUT Or ENABLE_INSERT_MODE);
 Finalization
 	SetConsoleMode(hStdin, fdwSaveOldMode);
+	SetConsoleActiveScreenBuffer(GetStdHandle(STD_OUTPUT_HANDLE));
 End.

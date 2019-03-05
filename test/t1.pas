@@ -10,7 +10,7 @@ c: DWord;
 
 Begin
 
-	SetConsoleFont('Consolas', 10, 20);
+	SetConsoleFont('Lucida Consolas', 10, 20);
 	SetConsoleSize(120, 30);
 	SetConsoleTitle('Console.ppu Test Progarm');
 	start := Time();
