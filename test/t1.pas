@@ -10,6 +10,7 @@ c: DWord;
 
 Begin
 
+	SetActiveBuffer(CreateBuffer());
 	SetConsoleFont('Consolas', 0, 20);
 	SetConsoleSize(120, 30);
 	SetConsoleTitle('Console.ppu Test Progarm');
@@ -36,7 +37,7 @@ Begin
 	WriteLn(t);
 
 	SetLength(happy, 123);
-	ReadLn(happy, c);
+	ReadLn();
 	Str(c, t);
 	WriteLn(t);
 	For i := 0 To c Do
@@ -46,5 +47,5 @@ Begin
 		WriteLn(t);
 	End;
 	WriteLn(t);
-	ReadLn(happy, c);
+	ReadLn();
 End.

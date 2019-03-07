@@ -54,6 +54,7 @@ DISABLE_NEWLINE_AUTO_RETURN: DWord = $0008;
 ENABLE_LVB_GRID_WORLDWIDE: DWord = $0010;
 
 Type
+Handle = System.THandle;
 FACETYPE = Array[0..(LF_FACESIZE)-1] Of WChar;
 Coord = Record
 	X : SmallInt;
@@ -112,19 +113,21 @@ Procedure SetConsoleColor(Const color: Word);
 Procedure TextBackground(Const color: Integer);
 Procedure TextColor(Const color: Integer);
 Procedure GoToXY(Const x, y: Integer);
-Procedure Read(Var s: Array Of Char; Var numRead: DWord);
+{Procedure Read(Var s: Array Of Char; Var numRead: DWord);
 Procedure ReadLn(Var s: Array Of Char; Var numRead: DWord);
 Procedure Write(Const s: AnsiString);
 Procedure WriteLn();
-Procedure WriteLn(Const s: AnsiString);
+Procedure WriteLn(Const s: AnsiString);}
 Procedure CursorOff();
 Procedure CursorOn();
 Procedure FlushInput();
+Function CreateBuffer(): Handle;
+Procedure SetActiveBuffer(ob: Handle);
+Function GetActiveBuffer(): Handle;
 
 Implementation
 
 Type
-Handle = System.THandle;
 LpDWord = ^DWord;
 PINPUTRECORD = ^INPUT_RECORD;
 CONSOLE_FONT_INFOEX = Record
@@ -170,6 +173,7 @@ Var
 hStdin: Handle;
 hStdout: Handle;
 fdwSaveOldMode: DWord;
+oldStdout: Handle;
 
 Function GetConsoleMode(hConsoleHandle: Handle; lpMode: LpDWord): LongBool; External 'kernel32';
 Function SetConsoleMode(hConsoleHandle: Handle; dwMode: DWord): LongBool; External 'kernel32';
@@ -189,6 +193,7 @@ Function SetConsoleCursorInfo(hConsoleOutput: Handle; lpConsoleCursorInfo: PCONS
 Function FlushConsoleInputBuffer(hConsoleInput: Handle): LongBool; External 'kernel32';
 Function SetConsoleOutputCP(wCodePageID: Cardinal): LongBool; External 'kernel32';
 Function GetStdHandle(nStdHandle: DWord): Handle; External 'kernel32';
+Function SetStdHandle(nStdHandle: DWord; hHandle: Handle): LongBool; External 'kernel32';
 Function GetLastError(): DWord; External 'kernel32';
 Function AttachConsole(dwProcessId: DWord): LongBool; External 'kernel32';
 Function SetConsoleTitleA(lpConsoleTitle: PAnsiString): LongBool; External 'kernel32';
@@ -223,7 +228,7 @@ Begin
 	FontInfo.FontFamily := 0;
 	FontInfo.nFont := 0;
 	FontInfo.FontWeight := 400;
-	FontInfo.FaceName := 'Consolas';
+	FontInfo.FaceName := FaceName;
 	FontInfo.dwFontSize.X := x;
 	FontInfo.dwFontSize.Y := y;
 	SetCurrentConsoleFontEx(hStdout, False, @FontInfo);
@@ -306,7 +311,7 @@ Begin
 	SetConsoleCursorPosition(hStdout, Loc);
 End;
 
-Procedure Read(Var s: Array Of Char; Var numRead: DWord);
+{Procedure Read(Var s: Array Of Char; Var numRead: DWord);
 Begin
 	ReadConsoleA(hStdin, @s[0], Length(s), @numRead, Nil);
 	WriteLn();
@@ -333,7 +338,7 @@ End;
 Procedure WriteLn(Const s: AnsiString);
 Begin
 	Write(s + Chr(10));
-End;
+End;}
 
 Procedure CursorOff();
 Var
@@ -358,14 +363,30 @@ Begin
 	FlushConsoleInputBuffer(hStdin);
 End;
 
+Function CreateBuffer(): Handle;
+Begin
+	CreateBuffer := CreateConsoleScreenBuffer(1073741824, 2, Nil, 1, Nil);
+End;
+
+Procedure SetActiveBuffer(ob: Handle);
+Begin
+	hStdout := ob;
+	SetConsoleActiveScreenBuffer(hStdout);
+	SetStdHandle(STD_OUTPUT_HANDLE, hStdout);
+End;
+
+Function GetActiveBuffer(): Handle;
+Begin
+	GetActiveBuffer := hStdout;
+End;
+
 Initialization
 	hStdin := GetStdHandle(STD_INPUT_HANDLE);
-	hStdout := CreateConsoleScreenBuffer(1073741824, 2, Nil, 1, Nil);
-	SetConsoleActiveScreenBuffer(hStdout);
+	oldStdout := GetStdHandle(STD_OUTPUT_HANDLE);
 	SetConsoleOutputCP(437);
 	GetConsoleMode(hStdin, @fdwSaveOldMode);
 	SetConsoleMode(hStdin, ENABLE_WINDOW_INPUT Or ENABLE_MOUSE_INPUT Or ENABLE_EXTENDED_FLAGS Or ENABLE_ECHO_INPUT Or ENABLE_LINE_INPUT Or ENABLE_INSERT_MODE);
 Finalization
 	SetConsoleMode(hStdin, fdwSaveOldMode);
-	SetConsoleActiveScreenBuffer(GetStdHandle(STD_OUTPUT_HANDLE));
+	SetActiveBuffer(oldStdout);
 End.
