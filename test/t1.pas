@@ -7,45 +7,53 @@ s: String;
 t: AnsiString;
 happy: Array Of Char;
 c: DWord;
+f: Text;
 
 Begin
 
 	SetActiveBuffer(CreateBuffer());
-	SetConsoleFont('Consolas', 0, 20);
+	SetConsoleFont('Failing Consolas', 0, 20);
 	SetConsoleSize(120, 30);
 	SetConsoleTitle('Console.ppu Test Progarm');
+	Assign(f, 'CONOUT$');
+	Rewrite(f);
 	start := Time();
 	s := '';
 	For i := 1 To 255 Do
 		s := s + 'a';
-	Write(s);
-	WriteLn();
+	Write(f, s);
+	WriteLn(f);
+	Flush(f);
 	Str(Time() - start:16:14, t);
-	WriteLn(t);
+	WriteLn(f, t);
 
 	start := Time();
-	Write(s);
-	WriteLn();
+	Write(f, s);
+	WriteLn(f);
+	Flush(f);
 	Str(Time() - start:16:14, t);
-	WriteLn(t);
+	WriteLn(f, t);
 
 	start := Time();
 	For i := 1 To 255 Do
-		Write('a');
-	WriteLn();
+		Write(f, 'a');
+	WriteLn(f);
+	Flush(f);
 	Str(Time() - start:16:14, t);
-	WriteLn(t);
+	WriteLn(f, t);
 
 	SetLength(happy, 123);
 	ReadLn();
-	Str(c, t);
-	WriteLn(t);
+	Str(12345, t);
+	WriteLn(f, t);
 	For i := 0 To c Do
 	Begin
 		If (happy[i] <> Chr(10)) And (happy[i] <> Chr(13)) Then
 			t := t + happy[i];
-		WriteLn(t);
+		WriteLn(f, t);
 	End;
-	WriteLn(t);
+	WriteLn(f, t);
+	Flush(f);
 	ReadLn();
+	Close(f);
 End.
