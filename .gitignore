@@ -1,2 +1,4 @@
-WinCrt.o
-test
+*.o
+*.exe
+*.a
+*.ppu

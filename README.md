@@ -1,2 +1,2 @@
-# MyCrt
-The drop-in replacement to pascal unit crt.
+# Console
+This can be used as a replacement to windows crt unit.
