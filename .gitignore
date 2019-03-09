@@ -1,3 +1,4 @@
-WinCrt.o
-test
-libimpWinCrt.a
+*.o
+*.exe
+*.a
+*.ppu
