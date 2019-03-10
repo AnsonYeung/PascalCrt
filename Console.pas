@@ -115,6 +115,7 @@ Procedure TextColor(Const color: Integer);
 Procedure GoToXY(Const x, y: Integer);
 Procedure CursorOff();
 Procedure CursorOn();
+Procedure WriteAttr(Const attrs: Array Of Word; Const x, y: Integer);
 Procedure FlushInput();
 Function CreateBuffer(): Handle;
 Procedure SetActiveBuffer(ob: Handle);
@@ -322,6 +323,16 @@ Begin
 	cursorInfo.bVisible := True;
 	cursorInfo.dwSize := 100;
 	SetConsoleCursorInfo(hStdout, @cursorInfo);
+End;
+
+Procedure WriteAttr(Const attrs: Array Of Word; Const x, y: Integer);
+Var
+loc: Coord;
+cAttrsWritten: DWord;
+Begin
+	loc.X := x;
+	loc.Y := y;
+	WriteConsoleOutputAttribute(hStdout, @attrs[0], High(attrs), loc, @cAttrsWritten);
 End;
 
 Procedure FlushInput();
