@@ -38,10 +38,9 @@ Begin
 	For i := 1 To 255 Do
 		Write(f, 'a');
 	WriteLn(f);
-	Flush(f);
 	Str(Time() - start:16:14, t);
 	WriteLn(f, t);
 	Flush(f);
-	ReadLn();
+	ReadKey();
 	Close(f);
 End.

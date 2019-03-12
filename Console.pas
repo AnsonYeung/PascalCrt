@@ -116,6 +116,7 @@ Procedure GoToXY(Const x, y: Integer);
 Procedure CursorOff();
 Procedure CursorOn();
 Procedure WriteAttr(Const attrs: Array Of Word; Const x, y: Integer);
+Function ReadKey(): Word;
 Procedure FlushInput();
 Function CreateBuffer(): Handle;
 Procedure SetActiveBuffer(ob: Handle);
@@ -333,6 +334,19 @@ Begin
 	loc.X := x;
 	loc.Y := y;
 	WriteConsoleOutputAttribute(hStdout, @attrs[0], High(attrs), loc, @cAttrsWritten);
+End;
+
+Function ReadKey(): Word;
+Var
+irInBuf: Array Of INPUT_RECORD;
+cNumRead: DWord;
+Begin
+	SetLength(irInBuf, 1);
+	SetConsoleMode(hStdin, ENABLE_WINDOW_INPUT Or ENABLE_MOUSE_INPUT Or ENABLE_EXTENDED_FLAGS Or ENABLE_ECHO_INPUT Or ENABLE_INSERT_MODE);
+	ReadConsoleA(hStdin, @irInBuf, 1, @cNumRead, Nil);
+	SetConsoleMode(hStdin, ENABLE_WINDOW_INPUT Or ENABLE_MOUSE_INPUT Or ENABLE_EXTENDED_FLAGS Or ENABLE_ECHO_INPUT Or ENABLE_LINE_INPUT Or ENABLE_INSERT_MODE);
+	ReadKey := irInBuf[0].Event.KeyEvent.wVirtualKeyCode;
+	Sleep(1000);
 End;
 
 Procedure FlushInput();
