@@ -332,7 +332,7 @@ cAttrsWritten: DWord;
 Begin
 	loc.X := x;
 	loc.Y := y;
-	WriteConsoleOutputAttribute(hStdout, @attrs[0], High(attrs), loc, @cAttrsWritten);
+	WriteConsoleOutputAttribute(hStdout, @attrs[0], High(attrs) + 1, loc, @cAttrsWritten);
 End;
 
 Procedure FlushInput();
