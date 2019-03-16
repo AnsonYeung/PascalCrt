@@ -8,6 +8,7 @@ t: AnsiString;
 happy: Array Of Char;
 c: DWord;
 f: Text;
+test: Array[0..2] Of Word;
 
 Begin
 
@@ -40,6 +41,9 @@ Begin
 	WriteLn(f);
 	Str(Time() - start:16:14, t);
 	WriteLn(f, t);
+	For i := 0 To 2 Do
+		test[i] := White * 16;
+	WriteAttr(test, 0, 0);
 	Flush(f);
 	ReadKey();
 	Close(f);
