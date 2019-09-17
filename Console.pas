@@ -1,4 +1,8 @@
-{ This unit can be a replacement to build-in unit crt }
+{
+	This unit can be a replacement to build-in unit crt.
+	For more details, please refer to the GitHub repository's README file.
+	https://github.com/AnsonYeung/PascalCrt
+}
 {$IFNDEF Windows}
 	{$Error Console unit is for Windows only, for other platforms, please use the native crt unit}
 {$ENDIF}
