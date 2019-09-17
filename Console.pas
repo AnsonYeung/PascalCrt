@@ -343,10 +343,11 @@ cNumRead: DWord;
 Begin
 	SetLength(irInBuf, 1);
 	SetConsoleMode(hStdin, ENABLE_WINDOW_INPUT Or ENABLE_MOUSE_INPUT Or ENABLE_EXTENDED_FLAGS Or ENABLE_ECHO_INPUT Or ENABLE_INSERT_MODE);
-	ReadConsoleA(hStdin, @irInBuf, 1, @cNumRead, Nil);
+	Repeat
+		ReadConsoleA(hStdin, @irInBuf, 1, @cNumRead, Nil);
+	Until Not irInBuf[0].Event.KeyEvent.bKeyDown;
 	SetConsoleMode(hStdin, ENABLE_WINDOW_INPUT Or ENABLE_MOUSE_INPUT Or ENABLE_EXTENDED_FLAGS Or ENABLE_ECHO_INPUT Or ENABLE_LINE_INPUT Or ENABLE_INSERT_MODE);
 	ReadKey := irInBuf[0].Event.KeyEvent.wVirtualKeyCode;
-	Sleep(1000);
 End;
 
 Procedure FlushInput();
