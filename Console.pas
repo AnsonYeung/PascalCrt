@@ -1,4 +1,9 @@
-{ This unit can be a replacement to build-in unit crt }
+{
+	This unit can be a replacement to build-in unit crt
+	Note that ReadKey behaves differently from crt.
+	It can't record capital letter input.
+	It returns when key is released.
+}
 {$IFNDEF Windows}
 	{$Error Console unit is for Windows only, for other platforms, please use the native crt unit}
 {$ENDIF}
@@ -341,12 +346,14 @@ Var
 irInBuf: Array Of INPUT_RECORD;
 cNumRead: DWord;
 Begin
+	{bKeyDown}
 	SetLength(irInBuf, 1);
-	SetConsoleMode(hStdin, ENABLE_WINDOW_INPUT Or ENABLE_MOUSE_INPUT Or ENABLE_EXTENDED_FLAGS Or ENABLE_ECHO_INPUT Or ENABLE_INSERT_MODE);
-	ReadConsoleA(hStdin, @irInBuf, 1, @cNumRead, Nil);
+	SetConsoleMode(hStdin, ENABLE_EXTENDED_FLAGS Or ENABLE_ECHO_INPUT Or ENABLE_INSERT_MODE);
+	Repeat
+		ReadConsoleInputA(hStdin, @irInBuf[0], 1, @cNumRead);
+		ReadKey := irInBuf[0].Event.KeyEvent.wVirtualKeyCode;
+	Until ReadKey <> 0;
 	SetConsoleMode(hStdin, ENABLE_WINDOW_INPUT Or ENABLE_MOUSE_INPUT Or ENABLE_EXTENDED_FLAGS Or ENABLE_ECHO_INPUT Or ENABLE_LINE_INPUT Or ENABLE_INSERT_MODE);
-	ReadKey := irInBuf[0].Event.KeyEvent.wVirtualKeyCode;
-	Sleep(1000);
 End;
 
 Procedure FlushInput();
