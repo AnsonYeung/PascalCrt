@@ -382,7 +382,7 @@ Initialization
 	oldStdout := GetStdHandle(STD_OUTPUT_HANDLE);
 	SetConsoleOutputCP(437);
 	GetConsoleMode(hStdin, @fdwSaveOldMode);
-	SetConsoleMode(hStdin, ENABLE_WINDOW_INPUT Or ENABLE_MOUSE_INPUT Or ENABLE_EXTENDED_FLAGS Or ENABLE_ECHO_INPUT Or ENABLE_LINE_INPUT Or ENABLE_INSERT_MODE);
+	SetConsoleMode(hStdin, ENABLE_WINDOW_INPUT Or ENABLE_MOUSE_INPUT Or ENABLE_EXTENDED_FLAGS Or ENABLE_ECHO_INPUT Or ENABLE_LINE_INPUT Or ENABLE_INSERT_MODE Or ENABLE_PROCESSED_INPUT);
 Finalization
 	SetConsoleMode(hStdin, fdwSaveOldMode);
 	SetActiveBuffer(oldStdout);
