@@ -171,6 +171,8 @@ SECURITY_ATTRIBUTES = Record
 End;
 PSECURITY_ATTRIBUTES = ^SECURITY_ATTRIBUTES;
 
+Const
+defaultMode: DWord = ENABLE_WINDOW_INPUT Or ENABLE_MOUSE_INPUT Or ENABLE_EXTENDED_FLAGS Or ENABLE_ECHO_INPUT Or ENABLE_LINE_INPUT Or ENABLE_INSERT_MODE Or ENABLE_PROCESSED_INPUT;
 Var
 hStdin: Handle;
 hStdout: Handle;
@@ -351,7 +353,7 @@ Begin
 		ReadConsoleInputA(hStdin, @irInBuf[0], 1, @cNumRead);
 		ReadKey := irInBuf[0].Event.KeyEvent.wVirtualKeyCode;
 	Until (ReadKey <> 0) And Not irInBuf[0].Event.KeyEvent.bKeyDown;
-	SetConsoleMode(hStdin, ENABLE_WINDOW_INPUT Or ENABLE_MOUSE_INPUT Or ENABLE_EXTENDED_FLAGS Or ENABLE_ECHO_INPUT Or ENABLE_LINE_INPUT Or ENABLE_INSERT_MODE);
+	SetConsoleMode(hStdin, defaultMode);
 End;
 
 Procedure FlushInput();
@@ -382,7 +384,7 @@ Initialization
 	oldStdout := GetStdHandle(STD_OUTPUT_HANDLE);
 	SetConsoleOutputCP(437);
 	GetConsoleMode(hStdin, @fdwSaveOldMode);
-	SetConsoleMode(hStdin, ENABLE_WINDOW_INPUT Or ENABLE_MOUSE_INPUT Or ENABLE_EXTENDED_FLAGS Or ENABLE_ECHO_INPUT Or ENABLE_LINE_INPUT Or ENABLE_INSERT_MODE Or ENABLE_PROCESSED_INPUT);
+	SetConsoleMode(hStdin, defaultMode);
 Finalization
 	SetConsoleMode(hStdin, fdwSaveOldMode);
 	SetActiveBuffer(oldStdout);
