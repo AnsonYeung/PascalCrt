@@ -112,6 +112,7 @@ Procedure SetConsoleFont(Const FaceName: FACETYPE; Const x, y: Integer);
 Procedure SetConsoleSize(Const Width: Integer; Const Height: Integer);
 Procedure SetConsoleBuffer(Const Width: Integer; Const Height: Integer);
 Procedure PollConsoleInput(Var irInBuf: Array Of INPUT_RECORD; Const bufSize: DWord; Var cNumRead: DWord);
+Procedure PeekConsoleInput(Var irInBuf: Array Of INPUT_RECORD; Const bufSize: DWord; Var cNumRead: DWord);
 Procedure ClrScr();
 Procedure SetConsoleColor(Const color: Word);
 Procedure TextBackground(Const color: Integer);
@@ -187,6 +188,7 @@ Function GetConsoleScreenBufferInfo(hConsoleOutput: Handle; lpConsoleScreenBuffe
 Function SetConsoleWindowInfo(hConsoleOutput: Handle; bAbsolute: LongBool; Const lpConsoleWindow: PSMALL_RECT): LongBool; External 'kernel32';
 Function SetConsoleScreenBufferSize(hConsoleOutput: Handle; dwSize: Coord): LongBool; External 'kernel32';
 Function ReadConsoleInputA(hConsoleInput: Handle; lpBuffer: PINPUTRECORD; nLength: DWord; lpNumberOfEventsRead: LpDWord): LongBool; External 'kernel32';
+Function PeekConsoleInputA(hConsoleInput: Handle; lpBuffer: PINPUTRECORD; nLength: DWord; lpNumberOfEventsRead: LpDWord): LongBool; External 'kernel32';
 Function FillConsoleOutputCharacterA(hConsoleOutput: Handle; cCharacter: Char; nLength: DWord; dwWriteCoord: Coord; lpNumberOfCharsWritten: LpDWord): LongBool; External 'kernel32';
 Function FillConsoleOutputAttribute(hConsoleOutput: Handle; wAttribute: Word; nLength: DWord; dwWriteCoord: Coord; lpNumberOfAttrsWritten: LpDWord): LongBool; External 'kernel32';
 Function SetConsoleTextAttribute(hConsoleOutput: Handle; wAttributes: Word): LongBool; External 'kernel32';
@@ -268,6 +270,11 @@ End;
 Procedure PollConsoleInput(Var irInBuf: Array Of INPUT_RECORD; Const bufSize: DWord; Var cNumRead: DWord);
 Begin
 	ReadConsoleInputA(hStdin, irInBuf, bufSize, @cNumRead);
+End;
+
+Procedure PeekConsoleInput(Var irInBuf: Array Of INPUT_RECORD; Const bufSize: DWord; Var cNumRead: DWord);
+Begin
+	PeekConsoleInputA(hStdin, irInBuf, bufSize, @cNumRead);
 End;
 
 Procedure ClrScr();
