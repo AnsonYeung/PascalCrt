@@ -9,6 +9,7 @@ happy: Array Of Char;
 c: DWord;
 f: Text;
 test: Array[0..2] Of Word;
+input: Word;
 
 Begin
 
@@ -45,6 +46,9 @@ Begin
 		test[i] := White * 16;
 	WriteAttr(test, 0, 0);
 	Flush(f);
-	ReadKey();
+	input := ReadKey();
+	WriteLn(f, input);
+	WriteLn(f, 'Press any key to exit...');
 	Close(f);
+	ReadKey();
 End.

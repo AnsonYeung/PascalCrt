@@ -1,4 +1,8 @@
-{ This unit can be a replacement to build-in unit crt }
+{
+	This unit can be a replacement to build-in unit crt.
+	For more details, please refer to the GitHub repository's README file.
+	https://github.com/AnsonYeung/PascalCrt
+}
 {$IFNDEF Windows}
 	{$Error Console unit is for Windows only, for other platforms, please use the native crt unit}
 {$ENDIF}
@@ -108,6 +112,7 @@ Procedure SetConsoleFont(Const FaceName: FACETYPE; Const x, y: Integer);
 Procedure SetConsoleSize(Const Width: Integer; Const Height: Integer);
 Procedure SetConsoleBuffer(Const Width: Integer; Const Height: Integer);
 Procedure PollConsoleInput(Var irInBuf: Array Of INPUT_RECORD; Const bufSize: DWord; Var cNumRead: DWord);
+Procedure PeekConsoleInput(Var irInBuf: Array Of INPUT_RECORD; Const bufSize: DWord; Var cNumRead: DWord);
 Procedure ClrScr();
 Procedure SetConsoleColor(Const color: Word);
 Procedure TextBackground(Const color: Integer);
@@ -167,6 +172,8 @@ SECURITY_ATTRIBUTES = Record
 End;
 PSECURITY_ATTRIBUTES = ^SECURITY_ATTRIBUTES;
 
+{$BF = ENABLE_WINDOW_INPUT Or ENABLE_MOUSE_INPUT Or ENABLE_EXTENDED_FLAGS Or ENABLE_ECHO_INPUT Or ENABLE_LINE_INPUT Or ENABLE_INSERT_MODE Or ENABLE_PROCESSED_INPUT }
+Const defaultMode: DWord = $BF;
 Var
 hStdin: Handle;
 hStdout: Handle;
@@ -181,6 +188,7 @@ Function GetConsoleScreenBufferInfo(hConsoleOutput: Handle; lpConsoleScreenBuffe
 Function SetConsoleWindowInfo(hConsoleOutput: Handle; bAbsolute: LongBool; Const lpConsoleWindow: PSMALL_RECT): LongBool; External 'kernel32';
 Function SetConsoleScreenBufferSize(hConsoleOutput: Handle; dwSize: Coord): LongBool; External 'kernel32';
 Function ReadConsoleInputA(hConsoleInput: Handle; lpBuffer: PINPUTRECORD; nLength: DWord; lpNumberOfEventsRead: LpDWord): LongBool; External 'kernel32';
+Function PeekConsoleInputA(hConsoleInput: Handle; lpBuffer: PINPUTRECORD; nLength: DWord; lpNumberOfEventsRead: LpDWord): LongBool; External 'kernel32';
 Function FillConsoleOutputCharacterA(hConsoleOutput: Handle; cCharacter: Char; nLength: DWord; dwWriteCoord: Coord; lpNumberOfCharsWritten: LpDWord): LongBool; External 'kernel32';
 Function FillConsoleOutputAttribute(hConsoleOutput: Handle; wAttribute: Word; nLength: DWord; dwWriteCoord: Coord; lpNumberOfAttrsWritten: LpDWord): LongBool; External 'kernel32';
 Function SetConsoleTextAttribute(hConsoleOutput: Handle; wAttributes: Word): LongBool; External 'kernel32';
@@ -264,6 +272,11 @@ Begin
 	ReadConsoleInputA(hStdin, irInBuf, bufSize, @cNumRead);
 End;
 
+Procedure PeekConsoleInput(Var irInBuf: Array Of INPUT_RECORD; Const bufSize: DWord; Var cNumRead: DWord);
+Begin
+	PeekConsoleInputA(hStdin, irInBuf, bufSize, @cNumRead);
+End;
+
 Procedure ClrScr();
 Var
 screen: Coord;
@@ -342,10 +355,12 @@ irInBuf: Array Of INPUT_RECORD;
 cNumRead: DWord;
 Begin
 	SetLength(irInBuf, 1);
+	SetConsoleMode(hStdin, ENABLE_EXTENDED_FLAGS Or ENABLE_ECHO_INPUT Or ENABLE_INSERT_MODE);
 	Repeat
 		ReadConsoleInputA(hStdin, @irInBuf[0], 1, @cNumRead);
-	Until (irInBuf[0].EventType = 1) And (irInBuf[0].Event.KeyEvent.wVirtualKeyCode <> 0) And Not irInBuf[0].Event.KeyEvent.bKeyDown;
-	ReadKey := irInBuf[0].Event.KeyEvent.wVirtualKeyCode;
+		ReadKey := irInBuf[0].Event.KeyEvent.wVirtualKeyCode;
+	Until (ReadKey <> 0) And Not irInBuf[0].Event.KeyEvent.bKeyDown;
+	SetConsoleMode(hStdin, defaultMode);
 End;
 
 Procedure FlushInput();
@@ -376,7 +391,7 @@ Initialization
 	oldStdout := GetStdHandle(STD_OUTPUT_HANDLE);
 	SetConsoleOutputCP(437);
 	GetConsoleMode(hStdin, @fdwSaveOldMode);
-	SetConsoleMode(hStdin, ENABLE_WINDOW_INPUT Or ENABLE_MOUSE_INPUT Or ENABLE_EXTENDED_FLAGS Or ENABLE_ECHO_INPUT Or ENABLE_LINE_INPUT Or ENABLE_INSERT_MODE);
+	SetConsoleMode(hStdin, defaultMode);
 Finalization
 	SetConsoleMode(hStdin, fdwSaveOldMode);
 	SetActiveBuffer(oldStdout);
