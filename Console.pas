@@ -7,6 +7,8 @@
 	{$Error Console unit is for Windows only, for other platforms, please use the native crt unit}
 {$ENDIF}
 {$mode objfpc}
+{$codepage UTF8}
+{$H+}
 {$inline on}
 {$calling stdcall}
 Unit Console;
@@ -29,13 +31,6 @@ LightAqua: Integer = 11;
 LightPurple: Integer = 13;
 LightYellow: Integer = 14;
 White: Integer = 15;
-
-v : Char = #186;
-h : Char = #205;
-cul : Char = #201;
-cur : Char = #187;
-cll : Char = #200;
-clr : Char = #188;
 
 LF_FACESIZE = 32;
 STD_INPUT_HANDLE: DWord = DWord(-10);
@@ -107,7 +102,7 @@ INPUT_RECORD = Record
 	End;
 End;
 
-Procedure SetConsoleTitle(Const title: AnsiString);
+Procedure SetConsoleTitle(Const title: UTF8String);
 Procedure SetConsoleFont(Const FaceName: FACETYPE; Const x, y: Integer);
 Procedure SetConsoleSize(Const Width: Integer; Const Height: Integer);
 Procedure SetConsoleBuffer(Const Width: Integer; Const Height: Integer);
@@ -172,12 +167,19 @@ SECURITY_ATTRIBUTES = Record
 End;
 PSECURITY_ATTRIBUTES = ^SECURITY_ATTRIBUTES;
 
-{$BF = ENABLE_WINDOW_INPUT Or ENABLE_MOUSE_INPUT Or ENABLE_EXTENDED_FLAGS Or ENABLE_ECHO_INPUT Or ENABLE_LINE_INPUT Or ENABLE_INSERT_MODE Or ENABLE_PROCESSED_INPUT }
-Const defaultMode: DWord = $BF;
+
+Const
+defaultInMode: DWord = $BF; { ENABLE_WINDOW_INPUT Or ENABLE_MOUSE_INPUT Or ENABLE_EXTENDED_FLAGS Or ENABLE_ECHO_INPUT Or ENABLE_LINE_INPUT Or ENABLE_INSERT_MODE Or ENABLE_PROCESSED_INPUT }
+defaultOutMode: Dword = $0F; { ENABLE_VIRTUAL_TERMINAL_PROCESSING }
+ESC: Char = #27;
+BEL: Char = #7;
+NUL: Char = #0;
+
 Var
 hStdin: Handle;
 hStdout: Handle;
-fdwSaveOldMode: DWord;
+fdwSaveOldInMode: DWord;
+fdwSaveOldOutMode: DWord;
 oldStdout: Handle;
 
 Function GetConsoleMode(hConsoleHandle: Handle; lpMode: LpDWord): LongBool; External 'kernel32';
@@ -202,11 +204,11 @@ Function GetStdHandle(nStdHandle: DWord): Handle; External 'kernel32';
 Function SetStdHandle(nStdHandle: DWord; hHandle: Handle): LongBool; External 'kernel32';
 Function GetLastError(): DWord; External 'kernel32';
 Function AttachConsole(dwProcessId: DWord): LongBool; External 'kernel32';
-Function SetConsoleTitleA(lpConsoleTitle: PAnsiString): LongBool; External 'kernel32';
+Function SetConsoleTitleA(lpConsoleTitle: PString): LongBool; External 'kernel32';
 Function CreateConsoleScreenBuffer(dwDesiredAccess: DWord; dwShareMode: DWord; Const lpSecurityAttributes: PSECURITY_ATTRIBUTES; dwFlags: DWord; lpScreenBufferData: Pointer): Handle; External 'kernel32';
 Function SetConsoleActiveScreenBuffer(hConsoleOutput: Handle): LongBool; External 'kernel32';
 Function ReadConsoleA(hConsoleInput: Handle; lpBuffer: Pointer; nNumberOfCharsToRead: DWord; lpNumberOfCharsRead: LpDWord; pInputControl: Pointer): LongBool; External 'kernel32';
-Function WriteConsoleA(hConsoleOutput: Handle; Const lpBuffer: Pointer; nNumberOfCharsToWrite: DWord; lpNumberOfCharsWritten: LpDWord; lpReserved: Pointer): LongBool; External 'kernel32';
+Function WriteConsoleW(hConsoleOutput: Handle; Const lpBuffer: Pointer; nNumberOfCharsToWrite: DWord; lpNumberOfCharsWritten: LpDWord; lpReserved: Pointer): LongBool; External 'kernel32';
 
 Function StrDup(Const str: String; Const cnt: Integer): String;
 Var
@@ -219,10 +221,9 @@ Begin
 	StrDup := s;
 End;
 
-
-Procedure SetConsoleTitle(Const title: AnsiString);
+Procedure SetConsoleTitle(Const title: UTF8String);
 Begin
-	SetConsoleTitleA(PAnsiString(title));
+	Write(ESC + ']0;' + title + BEL);
 End;
 
 Procedure SetConsoleFont(Const FaceName: FACETYPE; Const x, y: Integer);
@@ -255,6 +256,7 @@ Begin
 	SetConsoleWindowInfo(hStdout, True, @ConsoleSize);
 	{ Set the buffer size to be equal to the console size }
 	SetConsoleBuffer(Width, Height);
+
 End;
 
 Procedure SetConsoleBuffer(Const Width: Integer; Const Height: Integer);
@@ -283,6 +285,7 @@ screen: Coord;
 cCharsWritten: DWord;
 CurrentInfo: CONSOLE_SCREEN_BUFFER_INFO;
 Begin
+	Write(ESC + '[2J'); // need to write to stdout???
 	GetConsoleScreenBufferInfo(hStdout, @CurrentInfo);
 	screen.X := 0;
 	screen.Y := 0;
@@ -360,7 +363,7 @@ Begin
 		ReadConsoleInputA(hStdin, @irInBuf[0], 1, @cNumRead);
 		ReadKey := irInBuf[0].Event.KeyEvent.wVirtualKeyCode;
 	Until (ReadKey <> 0) And Not irInBuf[0].Event.KeyEvent.bKeyDown;
-	SetConsoleMode(hStdin, defaultMode);
+	SetConsoleMode(hStdin, defaultInMode);
 End;
 
 Procedure FlushInput();
@@ -378,6 +381,7 @@ Begin
 	hStdout := ob;
 	SetConsoleActiveScreenBuffer(hStdout);
 	SetStdHandle(STD_OUTPUT_HANDLE, hStdout);
+	SetConsoleMode(hStdout, defaultOutMode);
 End;
 
 Function GetActiveBuffer(): Handle;
@@ -389,10 +393,13 @@ Initialization
 	hStdin := GetStdHandle(STD_INPUT_HANDLE);
 	hStdout := GetStdHandle(STD_OUTPUT_HANDLE);
 	oldStdout := GetStdHandle(STD_OUTPUT_HANDLE);
-	SetConsoleOutputCP(437);
-	GetConsoleMode(hStdin, @fdwSaveOldMode);
-	SetConsoleMode(hStdin, defaultMode);
+	SetConsoleOutputCP(65001);
+	GetConsoleMode(hStdin, @fdwSaveOldInMode);
+	SetConsoleMode(hStdin, defaultInMode);
+	GetConsoleMode(hStdout, @fdwSaveOldOutMode);
+	SetConsoleMode(hStdout, defaultOutMode);
 Finalization
-	SetConsoleMode(hStdin, fdwSaveOldMode);
 	SetActiveBuffer(oldStdout);
+	SetConsoleMode(hStdin, fdwSaveOldInMode);
+	SetConsoleMode(hStdout, fdwSaveOldOutMode);
 End.

@@ -1,3 +1,4 @@
+{$codepage UTF8}
 Program t1;
 Uses SysUtils, Console;
 Var
@@ -16,7 +17,7 @@ Begin
 	SetActiveBuffer(CreateBuffer());
 	SetConsoleFont('Consolas', 0, 20);
 	SetConsoleSize(120, 30);
-	SetConsoleTitle('Console.ppu Test Progarm');
+	SetConsoleTitle('Console.ppu Test Program測試');
 	Assign(f, 'CONOUT$');
 	Rewrite(f);
 	start := Time();
